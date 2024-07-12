@@ -8,47 +8,57 @@ let data = fs.readFileSync("inputs/day7.txt", 'utf-8').split('\r\n').map((row)=>
     return row
 })
 
-//console.log(data);
+// console.log(data);
 
 function Dirfile(val,parent) {
     this.val = (val===undefined ? 0 : val)
     this.parent = (parent===undefined ? null : parent)
+    this.children = {}
 }
 
-let sysdict = {}
-let files = {}
 
 const mainp1 = function(data){
-    sysdict["/"] =  new Dirfile(0)
-    let currparent = sysdict["/"]
+    let root =  new Dirfile(0)
+    let curr = root
     
     //build directory
     for (let i = 1; i<data.length; i++){
-        console.log(data[i]);
+        // console.log(data[i]);
         
         if (data[i][0] == 'cd'){
             if (data[i][1] == '..'){
-                currparent.parent.val += Number(currparent.val)
-                currparent = currparent.parent
+                curr.parent.val += Number(curr.val)
+                curr = curr.parent
             } else {
-                currparent = sysdict[data[i][1]]
+                curr = curr.children[data[i][1]]
             }
         } else if (data[i][0] == 'dir'){
-            sysdict[data[i][1]] = new Dirfile(0, currparent)
+            curr.children[data[i][1]] = new Dirfile(0, curr)
         } else if (data[i][0] != 'ls'){
-            currparent.val += Number(data[i][0])
-            files[data[i][1]] = new Dirfile(Number(data[i][0]), currparent)
+            curr.val += Number(data[i][0])
         }
     }
+    let tally = addValues(root)
+    console.log(tally);
 
+    return tally
     //find directories that have less than 100k
-    let total = 0 //totals less than 100k
-    for(let dir in sysdict){
-        if(sysdict[dir].val < 100000){
-            total+= sysdict[dir].val
-        }
-    }
-
-    console.log(sysdict, files, total);
 }
+
+const addValues = function(node) {
+    // Initialize tally at the top-level call
+    let tally = 0;
+
+    const recursiveTally = function(currentNode) {
+        if (currentNode.val <= 100000) {
+            tally += currentNode.val;
+        }
+        for (let child in currentNode.children) {
+            recursiveTally(currentNode.children[child]);
+        }
+    };
+
+    recursiveTally(node);
+    return tally;
+};
 mainp1(data)
