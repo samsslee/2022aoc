@@ -17,13 +17,11 @@ function Dirfile(val,parent) {
 }
 
 
-const mainp1 = function(data){
+const main = function(data){
     let root =  new Dirfile(0)
     let curr = root
     
-    //build directory
     for (let i = 1; i<data.length; i++){
-        // console.log(data[i]);
         
         if (data[i][0] == 'cd'){
             if (data[i][1] == '..'){
@@ -37,28 +35,51 @@ const mainp1 = function(data){
         } else if (data[i][0] != 'ls'){
             curr.val += Number(data[i][0])
         }
-    }
-    let tally = addValues(root)
-    console.log(tally);
 
-    return tally
-    //find directories that have less than 100k
+    }
+
+    //scoot all the way back up to the beginning
+    while (curr.parent !== null){
+        curr.parent.val += Number(curr.val)
+        curr = curr.parent
+    }
+
+    console.log("part 1: ", part1(root));
+    console.log("part 2: ", part2(root, (70000000 - root.val)));
+
 }
 
-const addValues = function(node) {
-    // Initialize tally at the top-level call
+const part1 = function(node) {
     let tally = 0;
 
-    const recursiveTally = function(currentNode) {
+    const tallyUp = function(currentNode) {
         if (currentNode.val <= 100000) {
             tally += currentNode.val;
         }
         for (let child in currentNode.children) {
-            recursiveTally(currentNode.children[child]);
+            tallyUp(currentNode.children[child]);
         }
     };
 
-    recursiveTally(node);
+    tallyUp(node);
     return tally;
 };
-mainp1(data)
+
+const part2 = function(node, unused){
+
+    let deletedir = Infinity
+
+    const searchForDelete = function(currentNode) {
+        if (currentNode.val + unused >= 30000000) {
+            deletedir = Math.min(currentNode.val, deletedir)
+        }
+        for (let child in currentNode.children) {
+            searchForDelete(currentNode.children[child]);
+        }
+    };
+
+    searchForDelete(node);
+    return deletedir;
+
+}
+main(data)
